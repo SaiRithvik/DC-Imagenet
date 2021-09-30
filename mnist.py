@@ -64,6 +64,15 @@ class MnistModel(nn.Module):
         return F.log_softmax(x)
     
 model = MnistModel()
+train_on_gpu  = torch.cuda.is_available()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Assuming that we are on a CUDA machine, this should print a CUDA device:
+print(device)
+
+if train_on_gpu:
+    model.cuda()
+
+
 #model
 
 
@@ -93,14 +102,14 @@ test_loader = torch.utils.data.DataLoader(
 # In[6]:
 
 
-for p in model.parameters():
-    print(p.size())
+#for p in model.parameters():
+#    print(p.size())
 
 
 # In[7]:
 
 
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
 
 
 # - model.train() makes training=True, model.eval() makes traingin=False
@@ -114,7 +123,7 @@ train_accu = []
 i = 0
 for epoch in range(15):
     for data, target in train_loader:
-        data, target = Variable(data), Variable(target)
+        data, target = Variable(data).cuda(), Variable(target).cuda()
         optimizer.zero_grad()
         output = model(data)
         loss = F.nll_loss(output, target)
@@ -149,7 +158,7 @@ plt.plot(np.arange(len(train_accu)), train_accu)
 model.eval()
 correct = 0
 for data, target in test_loader:
-    data, target = Variable(data, volatile=True), Variable(target)
+    data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda()
     output = model(data)
     prediction = output.data.max(1)[1]
     correct += prediction.eq(target.data).sum()
